@@ -12,6 +12,7 @@ TOKEN = 'c27f964551786735a0cebbc26a743d0e18b06e9181f2166632964e37'
 url_quotation_before = "http://hq.sinajs.cn/list="
 fn = work_catalog + '\overview.xlsm'
 balancesheet_fields = 'total_share, end_date'
+income_fields = 'total_revenue, operate_profit, n_income, end_date'
 
 row_viewname = 1
 row_year = row_viewname + 1
@@ -115,22 +116,16 @@ def get_fcff(ws, rd, code, row, col):           # 企业自由现金流量
         df = rd.req_tushare_query(rd, code, str(year-i)+'1231')
         if( len(df) != 0 ):
             if(is_number(df.iloc[0]['fcff'])):
-                ws.cell(row, col+i).value = round(df.iloc[0]['fcff'] / 10000)
+                ws.cell(row, col+i).value = round(df.iloc[0]['fcff'] / 100000000)
 def total_share(ws, rd, code, row, col):           # 期末总股本
     year = int(get_today()[0:4]) - 1
     y_num = ws.cell(row_year, 1).value
     ws.cell(row, col_title).value = u'期末总股本'
-    mode = 'balancesheet'
-    para = []
-    para.append(code)
-    para.append(str(year)+'1231')
-    para.append(balancesheet_fields)
     for i in range(y_num):
-        para[1] = str(year-i)+'1231'
-        df = rd.req_tushare(rd, mode, para)
+        df = rd.req_balancesheet(rd, code, str(year-i)+'1231')
         if( len(df) != 0 ):
             if(is_number(df.iloc[0]['total_share'])):
-                ws.cell(row, col+i).value = round(df.iloc[0]['total_share'] / 10000)
+                ws.cell(row, col+i).value = round(df.iloc[0]['total_share'] / 100000000, 2)
 
 class delay_ctl():
     cnt = 0
@@ -165,6 +160,7 @@ class RawData():
     df_stock_basic = pd.DataFrame()
     df_dividend = pd.DataFrame()
     df_balancesheet = pd.DataFrame()
+    df_income = pd.DataFrame()
     df_forecast = pd.DataFrame()
     df_express = pd.DataFrame()
     dc = delay_ctl()
@@ -173,21 +169,18 @@ class RawData():
         cls.df_query = pd.DataFrame()
         cls.df_dividend = pd.DataFrame()
         cls.df_balancesheet = pd.DataFrame()
+        cls.df_income = pd.DataFrame()
         cls.df_forecast = pd.DataFrame()
         cls.df_express = pd.DataFrame()
     def req_tushare(self, cls, mode, para):
         if( mode == 'query'):
-            try:
-                df = cls.pro.query('fina_indicator', ts_code=para[0], period=para[1])
-            except Exception as e:
-                print(str(e))
-                os._exit(0)
+            df = cls.pro.query('fina_indicator', ts_code=para[0], period=para[1])
         elif( mode == 'stock_basic' ):
             df = cls.pro.stock_basic(exchange='', list_status=para[0], fields=para[1])
         elif( mode == 'dividend' ):
             df = cls.pro.dividend(ts_code=get_t_s_id(para[0]), fields=para[1])
         elif( mode == 'balancesheet' ):
-            df = cls.pro.balancesheet(ts_code=get_t_s_id(para[0]), start_date=para[1], end_date=get_today(), fields=para[2])
+            df = cls.pro.balancesheet(ts_code=para[0], period=para[1], fields=para[2])
         elif( mode == 'forecast' ):
             df = cls.pro.forecast(ts_code=get_t_s_id(para[0]), start_date=para[1], end_date=para[2], fields=para[3])
         elif( mode == 'express' ):
@@ -216,6 +209,44 @@ class RawData():
             if( df.shape[0] != 0 ):
                 cls.df_query = cls.df_query.append(df, ignore_index=True)
         return(df)
+    def req_balancesheet(self, cls, code, period):
+        get = False
+        if(cls.df_balancesheet.shape[0] != 0):
+            for i in range(cls.df_balancesheet.shape[0]):
+                if( cls.df_balancesheet.iloc[i]['end_date'] == period ):
+                    df = cls.df_balancesheet.iloc[[i]]
+                    get = True
+                    break
+        if( get == False ):
+            print('---- balacesheet ----', period[0:4])
+            mode = 'balancesheet'
+            para = []
+            para.append(get_t_s_id(code))
+            para.append(period)
+            para.append(balancesheet_fields)
+            df = self.req_tushare(cls, mode, para)
+            if( df.shape[0] != 0 ):
+                cls.df_balancesheet = cls.df_balancesheet.append(df, ignore_index=True)
+        return(df)
+    def req_income(self, cls, code, period):
+        get = False
+        if(cls.df_balancesheet.shape[0] != 0):
+            for i in range(cls.df_income.shape[0]):
+                if( cls.df_income.iloc[i]['end_date'] == period ):
+                    df = cls.df_income.iloc[[i]]
+                    get = True
+                    break
+        if( get == False ):
+            print('---- income ----', period[0:4])
+            mode = 'income'
+            para = []
+            para.append(get_t_s_id(code))
+            para.append(period)
+            para.append(income_fields)
+            df = self.req_tushare(cls, mode, para)
+            if( df.shape[0] != 0 ):
+                cls.df_income = cls.df_income.append(df, ignore_index=True)
+        return(df)
     def req_stock_basic(self, cls):
         if(cls.df_stock_basic.shape[0] == 0):
             mode = 'stock_basic'
@@ -232,39 +263,3 @@ class RawData():
             para.append('cash_div_tax,div_proc,end_date,record_date,ex_date,stk_bo_rate,stk_co_rate,stk_div')
             cls.df_dividend = self.req_tushare(cls, mode, para)
         return(cls.df_dividend)
-'''
-    def req_balancesheet(self, cls, code):  
-        if(cls.df_balancesheet.shape[0] == 0):
-            mode = 'balancesheet'
-            para = []
-            para.append(code)
-            para.append(last_eight_qtrs(get_today())[0])
-            para.append('total_share, end_date')
-            for i in range(len(last_eight_qtrs(get_today()))):
-                para[1] = last_eight_qtrs(get_today())[i]
-                df = self.req_tushare(cls, mode, para)
-                if(df.shape[0] != 0):
-                    break
-            cls.df_balancesheet = df
-        return(cls.df_balancesheet)
-    def req_forecast(self, cls, code, start_date):  
-        if(cls.df_forecast.shape[0] == 0):
-            mode = 'forecast'
-            para = []
-            para.append(code)
-            para.append(start_date)
-            para.append(get_today())
-            para.append('type, end_date, p_change_min, p_change_max, net_profit_min, net_profit_max')
-            cls.df_forecast = self.req_tushare(cls, mode, para)
-        return(cls.df_forecast)
-    def req_express(self, cls, code, start_date):  
-        if(cls.df_express.shape[0] == 0):
-            mode = 'express'
-            para = []
-            para.append(code)
-            para.append(start_date)
-            para.append(get_today())
-            para.append('ann_date, end_date, n_income, diluted_eps, yoy_tp, yoy_eps')
-            cls.df_express = self.req_tushare(cls, mode, para)
-        return(cls.df_express)
-'''
