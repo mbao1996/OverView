@@ -19,17 +19,15 @@ ws.cell(row_viewname, col_code).value = get_sina_id(code)
 name, price = get_name_price(code)
 ws.cell(row_viewname, col_share_name).value = name
 ws.cell(row_viewname, col_price).value = price
-'''
+
 year_title(ws, rd, code, row_year, col_start)
 get_ROE(ws, rd, code, row_ROE, col_start)
 get_fcff(ws, rd, code, row_fcff, col_start)         # 企业自由现金流量
-'''
 total_share(ws, rd, code, row_total_share, col_start)
-'''
 total_revenue(ws, rd, code, row_total_revenue, col_start)       # 营业总收入
 operate_profit(ws, rd, code, row_operate_profit, col_start)       # 营业利润
 net_income(ws, rd, code, row_net_income, col_start)       # 净利润
-'''
+
 try:
     wb.save(fn)
 except Exception as e:

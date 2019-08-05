@@ -19,6 +19,10 @@ row_year = row_viewname + 1
 row_ROE = row_year + 1
 row_fcff = row_ROE + 1          # 自由现金流
 row_total_share = row_fcff + 1
+row_total_revenue = row_total_share + 1          # 营业总收入
+row_operate_profit = row_total_revenue + 1      # 营业利润
+row_net_income = row_operate_profit + 1         # 净利润
+
 # ======= for sheet 'Sheet1' =============
 # ------- for row_viewname --------
 col_code = 1
@@ -91,7 +95,6 @@ def year_title(ws, rd, code, row, col):
     year = int(get_today()[0:4]) - 1
     years_cnt = 0
     while( not end ):
-        print(year, '***', years_cnt, end='')
         df = rd.req_tushare_query(rd, code, str(year)+'1231')
         if( len(df) != 0 ):
             ws.cell(row, col+years_cnt).value = year
@@ -126,6 +129,33 @@ def total_share(ws, rd, code, row, col):           # 期末总股本
         if( len(df) != 0 ):
             if(is_number(df.iloc[0]['total_share'])):
                 ws.cell(row, col+i).value = round(df.iloc[0]['total_share'] / 100000000, 2)
+def total_revenue(ws, rd, code, row, col):           # 营业总收入
+    year = int(get_today()[0:4]) - 1
+    y_num = ws.cell(row_year, 1).value
+    ws.cell(row, col_title).value = u'营业总收入'
+    for i in range(y_num):
+        df = rd.req_income(rd, code, str(year-i)+'1231')
+        if( len(df) != 0 ):
+            if(is_number(df.iloc[0]['total_revenue'])):
+                ws.cell(row, col+i).value = round(df.iloc[0]['total_revenue'] / 100000000, 2)
+def operate_profit(ws, rd, code, row, col):           # 营业利润
+    year = int(get_today()[0:4]) - 1
+    y_num = ws.cell(row_year, 1).value
+    ws.cell(row, col_title).value = u'营业利润'
+    for i in range(y_num):
+        df = rd.req_income(rd, code, str(year-i)+'1231')
+        if( len(df) != 0 ):
+            if(is_number(df.iloc[0]['operate_profit'])):
+                ws.cell(row, col+i).value = round(df.iloc[0]['operate_profit'] / 100000000, 2)
+def net_income(ws, rd, code, row, col):           # 净利润
+    year = int(get_today()[0:4]) - 1
+    y_num = ws.cell(row_year, 1).value
+    ws.cell(row, col_title).value = u'净利润'
+    for i in range(y_num):
+        df = rd.req_income(rd, code, str(year-i)+'1231')
+        if( len(df) != 0 ):
+            if(is_number(df.iloc[0]['n_income'])):
+                ws.cell(row, col+i).value = round(df.iloc[0]['n_income'] / 100000000, 2)
 
 class delay_ctl():
     cnt = 0
@@ -181,6 +211,8 @@ class RawData():
             df = cls.pro.dividend(ts_code=get_t_s_id(para[0]), fields=para[1])
         elif( mode == 'balancesheet' ):
             df = cls.pro.balancesheet(ts_code=para[0], period=para[1], fields=para[2])
+        elif( mode == 'income' ):
+            df = cls.pro.income(ts_code=para[0], period=para[1], fields=para[2])
         elif( mode == 'forecast' ):
             df = cls.pro.forecast(ts_code=get_t_s_id(para[0]), start_date=para[1], end_date=para[2], fields=para[3])
         elif( mode == 'express' ):
@@ -200,7 +232,6 @@ class RawData():
                     get = True
                     break
         if( get == False ):
-            print('---- req ----')
             mode = 'query'
             para = []
             para.append(get_t_s_id(code))
@@ -218,7 +249,6 @@ class RawData():
                     get = True
                     break
         if( get == False ):
-            print('---- balacesheet ----', period[0:4])
             mode = 'balancesheet'
             para = []
             para.append(get_t_s_id(code))
@@ -237,7 +267,6 @@ class RawData():
                     get = True
                     break
         if( get == False ):
-            print('---- income ----', period[0:4])
             mode = 'income'
             para = []
             para.append(get_t_s_id(code))
