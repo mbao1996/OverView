@@ -19,37 +19,9 @@ ws.cell(row_viewname, col_code).value = get_sina_id(code)
 name, price = get_name_price(code)
 ws.cell(row_viewname, col_share_name).value = name
 ws.cell(row_viewname, col_price).value = price
-# get ROE
-end = False
-year = int(get_today()[0:4]) - 1
-col_year = 2
-ws.cell(row_ROE, col_title).value = 'ROE'
-while( not end ):
-    df = rd.req_tushare_query(rd, code, str(year)+'1231')
-    if( len(df) != 0 ):
-        print(year,'---', df.iloc[0]['roe'])
-        ws.cell(row_year, col_year).value = year
-        ws.cell(row_ROE, col_year).value = df.iloc[0]['roe']
-    else:
-        print(year)
-        end = True
-    col_year += 1
-    year -= 1    
-# 企业自由现金流量
-end = False
-year = int(get_today()[0:4]) - 1
-col_year = 2
-ws.cell(row_fcff, col_title).value = u'自由现金流'
-while( not end ):
-    print(year)
-    df = rd.req_tushare_query(rd, code, str(year)+'1231')
-    if( len(df) != 0 ):
-        if( is_number(df.iloc[0]['fcff']) ):
-            ws.cell(row_fcff, col_year).value = round(df.iloc[0]['fcff'] / 10000)
-    else:
-        end = True
-    col_year += 1
-    year -= 1    
+year_title(ws, rd, code, row_year, col_start)
+get_ROE(ws, rd, code, row_ROE, col_start)
+get_fcff(ws, rd, code, row_fcff, col_start)         # 企业自由现金流量
 
 try:
     wb.save(fn)

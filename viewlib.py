@@ -23,6 +23,7 @@ col_share_name = col_code + 1
 col_price = col_share_name + 1
 # ------- for row_viewname --------
 col_title = 1
+col_start = col_title + 1
 
 def is_number(variate):
     flag = False
@@ -82,7 +83,37 @@ def get_today():
     today=datetime.date.today()
     formatted_today=today.strftime('%Y%m%d')
     return( formatted_today )
-
+def year_title(ws, rd, code, row, col):
+    end = False
+    year = int(get_today()[0:4]) - 1
+    years_cnt = 0
+    while( not end ):
+        print(year, '***', years_cnt, end='')
+        df = rd.req_tushare_query(rd, code, str(year)+'1231')
+        if( len(df) != 0 ):
+            ws.cell(row, col+years_cnt).value = year
+        else:
+            end = True
+        year -= 1
+        years_cnt += 1
+    ws.cell(row, 1).value = years_cnt - 1
+def get_ROE(ws, rd, code, row, col):
+    year = int(get_today()[0:4]) - 1
+    y_num = ws.cell(row_year, 1).value
+    ws.cell(row, col_title).value = 'ROE'
+    for i in range(y_num):
+        df = rd.req_tushare_query(rd, code, str(year-i)+'1231')
+        if( len(df) != 0 ):
+            ws.cell(row, col+i).value = df.iloc[0]['roe']
+def get_fcff(ws, rd, code, row, col):           # 企业自由现金流量
+    year = int(get_today()[0:4]) - 1
+    y_num = ws.cell(row_year, 1).value
+    ws.cell(row, col_title).value = u'自由现金流'
+    for i in range(y_num):
+        df = rd.req_tushare_query(rd, code, str(year-i)+'1231')
+        if( len(df) != 0 ):
+            if(is_number(df.iloc[0]['fcff'])):
+                ws.cell(row, col+i).value = round(df.iloc[0]['fcff'] / 10000)
 class delay_ctl():
     cnt = 0
     time_interval = 0
