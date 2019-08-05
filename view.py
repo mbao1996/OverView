@@ -22,6 +22,7 @@ ws.cell(row_viewname, col_price).value = price
 year_title(ws, rd, code, row_year, col_start)
 get_ROE(ws, rd, code, row_ROE, col_start)
 get_fcff(ws, rd, code, row_fcff, col_start)         # 企业自由现金流量
+total_share(ws, rd, code, row_total_share, col_start)
 
 try:
     wb.save(fn)

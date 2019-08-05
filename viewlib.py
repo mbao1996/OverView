@@ -11,11 +11,13 @@ work_catalog = "c:\PythonWork"
 TOKEN = 'c27f964551786735a0cebbc26a743d0e18b06e9181f2166632964e37'
 url_quotation_before = "http://hq.sinajs.cn/list="
 fn = work_catalog + '\overview.xlsm'
+balancesheet_fields = 'total_share, end_date'
 
 row_viewname = 1
 row_year = row_viewname + 1
 row_ROE = row_year + 1
 row_fcff = row_ROE + 1          # 自由现金流
+row_total_share = row_fcff + 1
 # ======= for sheet 'Sheet1' =============
 # ------- for row_viewname --------
 col_code = 1
@@ -114,6 +116,22 @@ def get_fcff(ws, rd, code, row, col):           # 企业自由现金流量
         if( len(df) != 0 ):
             if(is_number(df.iloc[0]['fcff'])):
                 ws.cell(row, col+i).value = round(df.iloc[0]['fcff'] / 10000)
+def total_share(ws, rd, code, row, col):           # 期末总股本
+    year = int(get_today()[0:4]) - 1
+    y_num = ws.cell(row_year, 1).value
+    ws.cell(row, col_title).value = u'期末总股本'
+    mode = 'balancesheet'
+    para = []
+    para.append(code)
+    para.append(str(year)+'1231')
+    para.append(balancesheet_fields)
+    for i in range(y_num):
+        para[1] = str(year-i)+'1231'
+        df = rd.req_tushare(rd, mode, para)
+        if( len(df) != 0 ):
+            if(is_number(df.iloc[0]['total_share'])):
+                ws.cell(row, col+i).value = round(df.iloc[0]['total_share'] / 10000)
+
 class delay_ctl():
     cnt = 0
     time_interval = 0
@@ -179,7 +197,6 @@ class RawData():
             print('mode:', mode, ' not exist.')
         # sleep
         cls.dc.ctl(cls.dc)
-#        time.sleep(0.76)
         return(df)
     def req_tushare_query(self, cls, code, period):
         get = False
