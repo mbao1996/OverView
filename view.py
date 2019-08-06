@@ -3,7 +3,7 @@ from openpyxl import load_workbook
 from viewlib import *
 
 # code cab be assigend
-code = '600036'
+code = '000651'
 
 try:
     wb = load_workbook(fn, keep_vba=True)
@@ -29,6 +29,11 @@ balancesheet(ws, rd, code)
 income(ws, rd, code)
 grow(ws, row_total_revenue, u'营总收增长率')
 grow(ws, row_net_income, u'净利润增长率')
+grow(ws, row_total_cur_assets, u'流动资产增长率')
+grow(ws, row_fix_assets, u'固定资产增长率')
+grow(ws, row_total_assets, u'资产增长率')
+grow(ws, row_total_liab, u'负债增长率')
+grow(ws, row_total_hldr_eqy_exc_min_int, u'股东权益增长率')
 
 try:
     wb.save(fn)

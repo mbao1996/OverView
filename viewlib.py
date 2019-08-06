@@ -11,7 +11,7 @@ work_catalog = "c:\PythonWork"
 TOKEN = 'c27f964551786735a0cebbc26a743d0e18b06e9181f2166632964e37'
 url_quotation_before = "http://hq.sinajs.cn/list="
 fn = work_catalog + '\overview.xlsm'
-balancesheet_fields = 'total_share, end_date'
+balancesheet_fields = 'total_share, total_cur_assets, fix_assets, total_assets, total_liab, total_hldr_eqy_exc_min_int, end_date'
 income_fields = 'total_revenue, operate_profit, n_income, end_date'
 
 row_viewname = 1
@@ -23,6 +23,13 @@ row_total_revenue = row_total_share + 1          # 营业总收入
 row_operate_profit = row_total_revenue + 2      # 营业利润
 row_net_income = row_operate_profit + 1         # 净利润
 
+row_total_cur_assets = 18                       # 流动资产
+row_fix_assets = row_total_cur_assets + 2       # 固定资产
+row_total_assets = row_fix_assets + 2           # 资产总计
+row_total_liab = row_total_assets + 2           # 负债合计
+row_total_hldr_eqy_exc_min_int = row_total_liab + 2     # 股东权益合计(不含少数股东权益)
+
+unit_ratio = 100000000      # 亿
 # ======= for sheet 'Sheet1' =============
 # ------- for row_viewname --------
 col_code = 1
@@ -114,16 +121,31 @@ def query(ws, rd, code):
             if(is_number(df.iloc[0]['roe'])):           # ROE
                 ws.cell(row_ROE, col_start+i).value = round(df.iloc[0]['roe'], 2)
             if(is_number(df.iloc[0]['fcff'])):           # 企业自由现金流量
-                ws.cell(row_fcff, col_start+i).value = round(df.iloc[0]['fcff'] / 100000000)
+                ws.cell(row_fcff, col_start+i).value = round(df.iloc[0]['fcff'] / unit_ratio)
 def balancesheet(ws, rd, code):
     year = int(get_today()[0:4]) - 1
     y_num = ws.cell(row_year, 1).value
     ws.cell(row_total_share, col_title).value = u'期末总股本'
+    ws.cell(row_total_cur_assets, col_title).value = u'流动资产'
+    ws.cell(row_fix_assets, col_title).value = u'固定资产'
+    ws.cell(row_total_assets, col_title).value = u'资产总计'
+    ws.cell(row_total_liab, col_title).value = u'负债合计'
+    ws.cell(row_total_hldr_eqy_exc_min_int, col_title).value = u'股东权益合计(不含少数股东权益)'
     for i in range(y_num):
         df = rd.req_balancesheet(rd, code, str(year-i)+'1231')
         if( len(df) != 0 ):
             if(is_number(df.iloc[0]['total_share'])):           # 期末总股本
-                ws.cell(row_total_share, col_start+i).value = round(df.iloc[0]['total_share'] / 100000000, 2)
+                ws.cell(row_total_share, col_start+i).value = round(df.iloc[0]['total_share'] / unit_ratio, 2)
+            if(is_number(df.iloc[0]['total_cur_assets'])):           # 流动资产
+                ws.cell(row_total_cur_assets, col_start+i).value = round(df.iloc[0]['total_cur_assets'] / unit_ratio, 2)
+            if(is_number(df.iloc[0]['fix_assets'])):           # 固定资产
+                ws.cell(row_fix_assets, col_start+i).value = round(df.iloc[0]['fix_assets'] / unit_ratio, 2)
+            if(is_number(df.iloc[0]['total_assets'])):           # 资产总计
+                ws.cell(row_total_assets, col_start+i).value = round(df.iloc[0]['total_assets'] / unit_ratio, 2)
+            if(is_number(df.iloc[0]['total_liab'])):           # 负债合计
+                ws.cell(row_total_liab, col_start+i).value = round(df.iloc[0]['total_liab'] / unit_ratio, 2)
+            if(is_number(df.iloc[0]['total_hldr_eqy_exc_min_int'])):           # 股东权益合计(不含少数股东权益)
+                ws.cell(row_total_hldr_eqy_exc_min_int, col_start+i).value = round(df.iloc[0]['total_hldr_eqy_exc_min_int'] / unit_ratio, 2)
 def income(ws, rd, code):
     year = int(get_today()[0:4]) - 1
     y_num = ws.cell(row_year, 1).value
@@ -134,11 +156,11 @@ def income(ws, rd, code):
         df = rd.req_income(rd, code, str(year-i)+'1231')
         if( len(df) != 0 ):
             if(is_number(df.iloc[0]['total_revenue'])):           # 营业总收入
-                ws.cell(row_total_revenue, col_start+i).value = round(df.iloc[0]['total_revenue'] / 100000000, 2)
+                ws.cell(row_total_revenue, col_start+i).value = round(df.iloc[0]['total_revenue'] / unit_ratio, 2)
             if(is_number(df.iloc[0]['operate_profit'])):           # 营业利润
-                ws.cell(row_operate_profit, col_start+i).value = round(df.iloc[0]['operate_profit'] / 100000000, 2)
+                ws.cell(row_operate_profit, col_start+i).value = round(df.iloc[0]['operate_profit'] / unit_ratio, 2)
             if(is_number(df.iloc[0]['n_income'])):           # 净利润
-                ws.cell(row_net_income, col_start+i).value = round(df.iloc[0]['n_income'] / 100000000, 2)
+                ws.cell(row_net_income, col_start+i).value = round(df.iloc[0]['n_income'] / unit_ratio, 2)
 def grow(ws, row, title):
     y_num = ws.cell(row_year, 1).value
     ws.cell(row+1, col_title).value = title
