@@ -27,6 +27,8 @@ query(ws, rd, code)
 balancesheet(ws, rd, code)
 # 营业总收入,营业利润,净利润
 income(ws, rd, code)
+grow(ws, row_total_revenue, u'营总收增长率')
+grow(ws, row_net_income, u'净利润增长率')
 
 try:
     wb.save(fn)

@@ -20,7 +20,7 @@ row_ROE = row_year + 1
 row_fcff = row_ROE + 1          # 自由现金流
 row_total_share = row_fcff + 1
 row_total_revenue = row_total_share + 1          # 营业总收入
-row_operate_profit = row_total_revenue + 1      # 营业利润
+row_operate_profit = row_total_revenue + 2      # 营业利润
 row_net_income = row_operate_profit + 1         # 净利润
 
 # ======= for sheet 'Sheet1' =============
@@ -135,10 +135,19 @@ def income(ws, rd, code):
         if( len(df) != 0 ):
             if(is_number(df.iloc[0]['total_revenue'])):           # 营业总收入
                 ws.cell(row_total_revenue, col_start+i).value = round(df.iloc[0]['total_revenue'] / 100000000, 2)
-            if(is_number(df.iloc[0]['total_revenue'])):           # 营业利润
+            if(is_number(df.iloc[0]['operate_profit'])):           # 营业利润
                 ws.cell(row_operate_profit, col_start+i).value = round(df.iloc[0]['operate_profit'] / 100000000, 2)
-            if(is_number(df.iloc[0]['total_revenue'])):           # 净利润
+            if(is_number(df.iloc[0]['n_income'])):           # 净利润
                 ws.cell(row_net_income, col_start+i).value = round(df.iloc[0]['n_income'] / 100000000, 2)
+def grow(ws, row, title):
+    y_num = ws.cell(row_year, 1).value
+    ws.cell(row+1, col_title).value = title
+    for i in range(y_num-1):
+        curr = ws.cell(row, col_start+i).value
+        last = ws.cell(row, col_start+i+1).value
+        if(is_number(curr) and is_number(last)):
+            ws.cell(row+1, col_start+i).value = round(curr/last -1, 4)
+
 
 class delay_ctl():
     cnt = 0
