@@ -103,59 +103,42 @@ def year_title(ws, rd, code, row, col):
         year -= 1
         years_cnt += 1
     ws.cell(row, 1).value = years_cnt - 1
-def get_ROE(ws, rd, code, row, col):
+def query(ws, rd, code):
     year = int(get_today()[0:4]) - 1
     y_num = ws.cell(row_year, 1).value
-    ws.cell(row, col_title).value = 'ROE'
+    ws.cell(row_ROE, col_title).value = 'ROE'
+    ws.cell(row_fcff, col_title).value = u'自由现金流'
     for i in range(y_num):
         df = rd.req_tushare_query(rd, code, str(year-i)+'1231')
         if( len(df) != 0 ):
-            ws.cell(row, col+i).value = df.iloc[0]['roe']
-def get_fcff(ws, rd, code, row, col):           # 企业自由现金流量
+            if(is_number(df.iloc[0]['roe'])):           # ROE
+                ws.cell(row_ROE, col_start+i).value = round(df.iloc[0]['roe'], 2)
+            if(is_number(df.iloc[0]['fcff'])):           # 企业自由现金流量
+                ws.cell(row_fcff, col_start+i).value = round(df.iloc[0]['fcff'] / 100000000)
+def balancesheet(ws, rd, code):
     year = int(get_today()[0:4]) - 1
     y_num = ws.cell(row_year, 1).value
-    ws.cell(row, col_title).value = u'自由现金流'
-    for i in range(y_num):
-        df = rd.req_tushare_query(rd, code, str(year-i)+'1231')
-        if( len(df) != 0 ):
-            if(is_number(df.iloc[0]['fcff'])):
-                ws.cell(row, col+i).value = round(df.iloc[0]['fcff'] / 100000000)
-def total_share(ws, rd, code, row, col):           # 期末总股本
-    year = int(get_today()[0:4]) - 1
-    y_num = ws.cell(row_year, 1).value
-    ws.cell(row, col_title).value = u'期末总股本'
+    ws.cell(row_total_share, col_title).value = u'期末总股本'
     for i in range(y_num):
         df = rd.req_balancesheet(rd, code, str(year-i)+'1231')
         if( len(df) != 0 ):
-            if(is_number(df.iloc[0]['total_share'])):
-                ws.cell(row, col+i).value = round(df.iloc[0]['total_share'] / 100000000, 2)
-def total_revenue(ws, rd, code, row, col):           # 营业总收入
+            if(is_number(df.iloc[0]['total_share'])):           # 期末总股本
+                ws.cell(row_total_share, col_start+i).value = round(df.iloc[0]['total_share'] / 100000000, 2)
+def income(ws, rd, code):
     year = int(get_today()[0:4]) - 1
     y_num = ws.cell(row_year, 1).value
-    ws.cell(row, col_title).value = u'营业总收入'
+    ws.cell(row_total_revenue, col_title).value = u'营业总收入'
+    ws.cell(row_operate_profit, col_title).value = u'营业利润'
+    ws.cell(row_net_income, col_title).value = u'净利润'
     for i in range(y_num):
         df = rd.req_income(rd, code, str(year-i)+'1231')
         if( len(df) != 0 ):
-            if(is_number(df.iloc[0]['total_revenue'])):
-                ws.cell(row, col+i).value = round(df.iloc[0]['total_revenue'] / 100000000, 2)
-def operate_profit(ws, rd, code, row, col):           # 营业利润
-    year = int(get_today()[0:4]) - 1
-    y_num = ws.cell(row_year, 1).value
-    ws.cell(row, col_title).value = u'营业利润'
-    for i in range(y_num):
-        df = rd.req_income(rd, code, str(year-i)+'1231')
-        if( len(df) != 0 ):
-            if(is_number(df.iloc[0]['operate_profit'])):
-                ws.cell(row, col+i).value = round(df.iloc[0]['operate_profit'] / 100000000, 2)
-def net_income(ws, rd, code, row, col):           # 净利润
-    year = int(get_today()[0:4]) - 1
-    y_num = ws.cell(row_year, 1).value
-    ws.cell(row, col_title).value = u'净利润'
-    for i in range(y_num):
-        df = rd.req_income(rd, code, str(year-i)+'1231')
-        if( len(df) != 0 ):
-            if(is_number(df.iloc[0]['n_income'])):
-                ws.cell(row, col+i).value = round(df.iloc[0]['n_income'] / 100000000, 2)
+            if(is_number(df.iloc[0]['total_revenue'])):           # 营业总收入
+                ws.cell(row_total_revenue, col_start+i).value = round(df.iloc[0]['total_revenue'] / 100000000, 2)
+            if(is_number(df.iloc[0]['total_revenue'])):           # 营业利润
+                ws.cell(row_operate_profit, col_start+i).value = round(df.iloc[0]['operate_profit'] / 100000000, 2)
+            if(is_number(df.iloc[0]['total_revenue'])):           # 净利润
+                ws.cell(row_net_income, col_start+i).value = round(df.iloc[0]['n_income'] / 100000000, 2)
 
 class delay_ctl():
     cnt = 0
